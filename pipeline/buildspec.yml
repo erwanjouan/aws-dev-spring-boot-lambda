@@ -1,0 +1,28 @@
+version: 0.2
+# https://docs.aws.amazon.com/codepipeline/latest/userguide/ecs-cd-pipeline.html
+env:
+  git-credential-helper: yes
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - java -version
+  build:
+    commands:
+      - echo Build started on $(date)
+      - mvn package
+  post_build:
+    commands:
+      - mkdir -p revision
+      - rm original-*.jar
+      - cp target/*.jar revision/app.jar
+      - cp pipeline/codedeploy/* revision/
+      - zip revision.zip revision/*
+artifacts:
+  files:
+    - revision.zip
+  discard-paths: yes
+cache:
+  paths:
+    - '/root/.m2/**/*'

@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A Java SpringBoot application (Lambda) built with CodeBuild to S3
+Parameters:
+  ProjectName:
+    Type: String
+  ProjectVersion:
+    Type: String
+  GitCommitId:
+    Type: String
+
+Resources:
+
+  ############
+  # CodeBuild
+  ############
+
+  ArtifactOutputBucket:
+    Description: Bucket for output
+    Properties:
+      BucketName: !Sub '${ProjectName}-output'
+    Type: AWS::S3::Bucket
+  CodeBuildServiceRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: allow-to-push-to-S3
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:List*
+                Resource:
+                  - !Sub "arn:aws:s3:::${ArtifactOutputBucket}"
+                  - !Sub "arn:aws:s3:::${ArtifactOutputBucket}/*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogStreams
+                  - logs:GetLogEvents
+                  - logs:PutLogEvents
+                  - logs:PutRetentionPolicy
+                Resource: "arn:aws:logs:*"
+    Type: AWS::IAM::Role
+
+  CodeBuildJavaProject:
+    DependsOn: CodeBuildServiceRole
+    Properties:
+      Name: !Ref ProjectName
+      ServiceRole: !Ref CodeBuildServiceRole
+      Source:
+        Type: GITHUB
+        Location: https://github.com/erwanjouan/aws-dev-spring-boot-lambda.git
+        BuildSpec: pipeline/buildspec.yml
+      SourceVersion: !Ref GitCommitId
+      Artifacts:
+        Type: S3
+        Location: !Ref ArtifactOutputBucket
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:4.0
+        Type: LINUX_CONTAINER
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Type: PLAINTEXT
+            Value: eu-west-1
+          - Name: PROJECT_NAME
+            Type: PLAINTEXT
+            Value: !Ref ProjectName
+          - Name: BUCKET_NAME
+            Type: PLAINTEXT
+            Value: !Ref ArtifactOutputBucket
+          - Name: PROJECT_VERSION
+            Type: PLAINTEXT
+            Value: !Ref ProjectVersion
+          - Name: GIT_COMMIT_ID
+            Type: PLAINTEXT
+            Value: '#{GitVariables.CommitId}'
+      Cache:
+        Location: !Sub '${ArtifactOutputBucket}/cache'
+        Type: S3
+    Type: AWS::CodeBuild::Project
