@@ -11,7 +11,7 @@ public class BlueGreenController {
     @Value("${display_color}")
     private String color;
 
-    @GetMapping("/proxy")
+    @GetMapping("/")
     public String page(Model model){
         model.addAttribute("color", color);
         return "page";
