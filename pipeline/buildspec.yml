@@ -15,7 +15,7 @@ phases:
   post_build:
     commands:
       - mkdir -p revision
-      - rm original-*.jar
+      - rm target/original-*.jar
       - cp target/*.jar revision/app.jar
       - cp pipeline/codedeploy/* revision/
       - zip revision.zip revision/*
