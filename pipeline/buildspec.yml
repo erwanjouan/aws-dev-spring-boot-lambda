@@ -14,16 +14,15 @@ phases:
       - mvn package
   post_build:
     commands:
-      - mkdir -p revision
       - rm target/original-*.jar
-      - cp target/*.jar revision/app.jar
-      - cp pipeline/codedeploy/* revision/
-      - zip revision.zip revision/*
-      - cp revision/app.jar .
+      - cp target/*.jar app_latest.jar
+      - cp pipeline/codedeploy/appspec.yml .
+      - cp app_latest.jar app_$GIT_COMMIT_ID.jar
 artifacts:
   files:
     - revision.zip
     - app.jar
+    - app_$GIT_COMMIT_ID.jar
   discard-paths: yes
 cache:
   paths:

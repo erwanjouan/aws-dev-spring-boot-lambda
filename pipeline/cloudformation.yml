@@ -86,7 +86,7 @@ Resources:
             Value: !Ref ProjectVersion
           - Name: GIT_COMMIT_ID
             Type: PLAINTEXT
-            Value: '#{GitVariables.CommitId}'
+            Value: !Ref GitCommitId
       Cache:
         Location: !Sub '${ArtifactOutputBucket}/cache'
         Type: S3
