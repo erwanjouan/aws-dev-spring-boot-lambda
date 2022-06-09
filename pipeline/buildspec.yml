@@ -20,8 +20,8 @@ phases:
       - cp app_latest.jar app_${GIT_COMMIT_ID}.jar
 artifacts:
   files:
-    - revision.zip
-    - app.jar
+    - appspec.yml
+    - app_latest.jar
     - app_${GIT_COMMIT_ID}.jar
   discard-paths: yes
 cache:
