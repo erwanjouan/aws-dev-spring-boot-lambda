@@ -19,9 +19,11 @@ phases:
       - cp target/*.jar revision/app.jar
       - cp pipeline/codedeploy/* revision/
       - zip revision.zip revision/*
+      - cp revision/app.jar .
 artifacts:
   files:
     - revision.zip
+    - app.jar
   discard-paths: yes
 cache:
   paths:
